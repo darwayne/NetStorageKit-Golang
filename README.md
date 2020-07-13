@@ -15,7 +15,7 @@ Installation
 To install Netstorage API for Go:  
 
 ```bash
-$ go get github.com/darwayne/netstoragekit-golang
+$ go get github.com/darwayne/NetStorageKit-Golang
 ```
   
   
@@ -27,7 +27,7 @@ package main
 
 import (
   "fmt"
-  "github.com/darwayne/netstoragekit-golang"
+  "github.com/darwayne/NetStorageKit-Golang"
   "./secrets" // in the .gitignore file
 )
 
@@ -104,7 +104,7 @@ $ go test
 PASS
 [TEARDOWN] remove nst_1477474457.txt from local done
 [TEARDOWN] remove nst_1477474457.txt_rename from local done
-ok  	github.com/darwayne/netstoragekit-golang	x.xxxs
+ok  	github.com/darwayne/NetStorageKit-Golang	x.xxxs
 ```
   
   
