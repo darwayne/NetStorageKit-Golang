@@ -1,3 +1,3 @@
-module github.com/darwayne/NetStorageKit-Golang
+module github.com/darwayne/netstoragekit-golang
 
 go 1.7
