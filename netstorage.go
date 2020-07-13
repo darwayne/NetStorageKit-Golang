@@ -3,6 +3,7 @@ package netstorage
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -127,8 +128,14 @@ func (ns *Netstorage) _request(kwargs map[string]interface{}) (*http.Response, s
 		}
 	}
 
-	request, err := http.NewRequest(kwargs["method"].(string),
-		fmt.Sprintf("http%s://%s%s", ns.Ssl, ns.Hostname, nsPath), data)
+	method := kwargs["method"].(string)
+	url := fmt.Sprintf("http%s://%s%s", ns.Ssl, ns.Hostname, nsPath)
+	var request *http.Request
+	if ctx, ok := kwargs["ctx"].(context.Context); ok {
+		request, err = http.NewRequestWithContext(ctx, method, url, data)
+	} else {
+		request, err = http.NewRequest(method, url, data)
+	}
 
 	if err != nil {
 		return nil, "", err
@@ -154,10 +161,16 @@ func (ns *Netstorage) _request(kwargs map[string]interface{}) (*http.Response, s
 
 // Dir returns the directory structure
 func (ns *Netstorage) Dir(nsPath string) (*http.Response, string, error) {
+	return ns.DirWithContext(context.Background(), nsPath)
+}
+
+// DirWithContext provides Dir behavior with context
+func (ns *Netstorage) DirWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "dir&format=xml",
 		"method": "GET",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
@@ -166,8 +179,13 @@ func (ns *Netstorage) Dir(nsPath string) (*http.Response, string, error) {
 // the second is Local destination path. If you put only the first parameter,
 // it downloads to current local path with the first parameter's file name.
 // From the third parameters will be ignored.
-// Note that you can downlad only a file, not a directory.
+// Note that you can download only a file, not a directory.
 func (ns *Netstorage) Download(path ...string) (*http.Response, string, error) {
+	return ns.DownloadWithContext(context.Background(), path...)
+}
+
+// DownloadWithContext provides Download behavior with context
+func (ns *Netstorage) DownloadWithContext(ctx context.Context, path ...string) (*http.Response, string, error) {
 	nsSource := path[0]
 	if strings.HasSuffix(nsSource, "/") {
 		return nil, "", fmt.Errorf("[NetstorageError] Nestorage download path shouldn't be a directory: %s", nsSource)
@@ -183,87 +201,141 @@ func (ns *Netstorage) Download(path ...string) (*http.Response, string, error) {
 		"method":      "GET",
 		"path":        nsSource,
 		"destination": localDestination,
+		"ctx":         ctx,
 	})
 }
 
 // Du returns the disk usage information for a directory
 func (ns *Netstorage) Du(nsPath string) (*http.Response, string, error) {
+	return ns.DuWithContext(context.Background(), nsPath)
+}
+
+func (ns *Netstorage) DuWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "du&format=xml",
 		"method": "GET",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
 // Stat returns the information about an object structure
 func (ns *Netstorage) Stat(nsPath string) (*http.Response, string, error) {
+	return ns.StatWithContext(context.Background(), nsPath)
+}
+
+// StatWithContext provides Stat behavior with context
+func (ns *Netstorage) StatWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "stat&format=xml",
 		"method": "GET",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
 // Mkdir creates an empty directory
 func (ns *Netstorage) Mkdir(nsPath string) (*http.Response, string, error) {
+	return ns.MkdirWithContext(context.Background(), nsPath)
+}
+
+// MkdirWithContext provides Mkdir behavior with context
+func (ns *Netstorage) MkdirWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "mkdir",
 		"method": "POST",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
 // Rmdir deletes an empty directory
 func (ns *Netstorage) Rmdir(nsPath string) (*http.Response, string, error) {
+	return ns.RmdirWithContext(context.Background(), nsPath)
+}
+
+// RmdirWithContext provides Rmdir behavior with context
+func (ns *Netstorage) RmdirWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "rmdir",
 		"method": "POST",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
 // Mtime changes a file’s mtime
 func (ns *Netstorage) Mtime(nsPath string, mtime int64) (*http.Response, string, error) {
+	return ns.MtimeWithContext(context.Background(), nsPath, mtime)
+}
+
+// MtimeWithContext provides Mtime behavior with context
+func (ns *Netstorage) MtimeWithContext(ctx context.Context, nsPath string, mtime int64) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": fmt.Sprintf("mtime&format=xml&mtime=%d", mtime),
 		"method": "POST",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
 // Delete deletes an object/symbolic link
 func (ns *Netstorage) Delete(nsPath string) (*http.Response, string, error) {
+	return ns.DeleteWithContext(context.Background(), nsPath)
+}
+
+// DeleteWithContext provides Delete behavior with context
+func (ns *Netstorage) DeleteWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "delete",
 		"method": "POST",
 		"path":   nsPath,
+		"ctx":    ctx,
 	})
 }
 
 // QuickDelete deletes a directory (i.e., recursively delete a directory tree)
 // In order to use this func, you need to the privilege on the CP Code.
 func (ns *Netstorage) QuickDelete(nsPath string) (*http.Response, string, error) {
+	return ns.QuickDeleteWithContext(context.Background(), nsPath)
+}
+
+// QuickDeleteWithContext provides QuickDelete behavior with context.
+func (ns *Netstorage) QuickDeleteWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "quick-delete&quick-delete=imreallyreallysure",
 		"method": "POST",
+		"ctx":    ctx,
 		"path":   nsPath,
 	})
 }
 
 // Rename renames a file or symbolic link.
 func (ns *Netstorage) Rename(nsTarget, nsDestination string) (*http.Response, string, error) {
+	return ns.RenameWithContext(context.Background(), nsTarget, nsDestination)
+}
+
+// RenameWithContext provides Rename behavior with context.
+func (ns *Netstorage) RenameWithContext(ctx context.Context, nsTarget, nsDestination string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "rename&destination=" + url.QueryEscape(nsDestination),
 		"method": "POST",
+		"ctx":    ctx,
 		"path":   nsTarget,
 	})
 }
 
 // Symlink creates a symbolic link.
 func (ns *Netstorage) Symlink(nsTarget, nsDestination string) (*http.Response, string, error) {
+	return ns.SymlinkWithContext(context.Background(), nsTarget, nsDestination)
+}
+
+// SymlinkWithContext adds SymLink behavior with context.
+func (ns *Netstorage) SymlinkWithContext(ctx context.Context, nsTarget, nsDestination string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "symlink&target=" + url.QueryEscape(nsTarget),
 		"method": "POST",
+		"ctx":    ctx,
 		"path":   nsDestination,
 	})
 }
@@ -275,6 +347,11 @@ func (ns *Netstorage) Symlink(nsTarget, nsDestination string) (*http.Response, s
 // will be the "localSource" parameter filename.
 // Note that you can upload only a file, not a directory.
 func (ns *Netstorage) Upload(localSource, nsDestination string) (*http.Response, string, error) {
+	return ns.UploadWithContext(context.Background(), localSource, nsDestination)
+}
+
+// UploadWithContext adds Upload behavior with context.
+func (ns *Netstorage) UploadWithContext(ctx context.Context, localSource, nsDestination string) (*http.Response, string, error) {
 	s, err := os.Stat(localSource)
 
 	if err != nil {
@@ -293,12 +370,18 @@ func (ns *Netstorage) Upload(localSource, nsDestination string) (*http.Response,
 		"action": "upload",
 		"method": "PUT",
 		"source": localSource,
+		"ctx":    ctx,
 		"path":   nsDestination,
 	})
 }
 
 // UploadContent uploads an object directly with its content.
 func (ns *Netstorage) UploadContent(reader io.Reader, nsDestination string) (*http.Response, string, error) {
+	return ns.UploadContentWithContext(context.Background(), reader, nsDestination)
+}
+
+// UploadContentWithContext adds UploadContent behavior with context.
+func (ns *Netstorage) UploadContentWithContext(ctx context.Context, reader io.Reader, nsDestination string) (*http.Response, string, error) {
 	if strings.HasSuffix(nsDestination, "/") {
 		return nil, "", fmt.Errorf("[NetstorageError] Destination path should not be a directory")
 	}
@@ -307,6 +390,7 @@ func (ns *Netstorage) UploadContent(reader io.Reader, nsDestination string) (*ht
 		"action":  "upload",
 		"method":  "PUT",
 		"content": reader,
+		"ctx":     ctx,
 		"path":    nsDestination,
 	})
 }
