@@ -210,6 +210,7 @@ func (ns *Netstorage) Du(nsPath string) (*http.Response, string, error) {
 	return ns.DuWithContext(context.Background(), nsPath)
 }
 
+// DuWithContext adds Du behavior with context
 func (ns *Netstorage) DuWithContext(ctx context.Context, nsPath string) (*http.Response, string, error) {
 	return ns._request(map[string]interface{}{
 		"action": "du&format=xml",
