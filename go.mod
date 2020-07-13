@@ -1,3 +1,3 @@
-module github.com/akamai/NetStorageKit-Golang
+module github.com/darwayne/NetStorageKit-Golang
 
 go 1.7
