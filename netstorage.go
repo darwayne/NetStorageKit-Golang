@@ -30,7 +30,12 @@ type Netstorage struct {
 	Keyname  string
 	Key      string
 	Ssl      string
-	Client   *http.Client
+	Client   Doer
+}
+
+// Doer is an interface for http client
+type Doer interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
 // NewNetstorage func creates and initiates Netstorage struct.
